@@ -12,22 +12,10 @@ detached signing and signcryption) are supported.
 Installation
 ---
 
-node-saltpack is published to the npm registry and GitHub Package Registry. TypeScript definitions are included.
+@vaultys/saltpack is published to the npm registry. TypeScript definitions are included.
 
 ```
-npm install @samuelthomas2774/saltpack
-```
-
-### GitHub Package Registry
-
-By default npm will install from https://npmjs.com. You can configure npm to install node-saltpack from
-GitHub Package Registry by adding this to your npmrc:
-
-```
-@samuelthomas2774:registry=https://npm.pkg.github.com
-```
-```
-echo "@samuelthomas2774:registry=https://npm.pkg.github.com" >> `npm --global prefix`/etc/npmrc
+npm install @vaultys/saltpack
 ```
 
 Encryption
@@ -39,7 +27,7 @@ data as a string.
 `encrypt` accepts the same arguments as `encryptAndArmor` but returns a Buffer without armor.
 
 ```ts
-import {encryptAndArmor} from '@samuelthomas2774/saltpack';
+import {encryptAndArmor} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const plaintext: Buffer | string = '...';
@@ -53,11 +41,11 @@ const encrypted = await encryptAndArmor(plaintext, sender_keypair, recipients_ke
 // encrypted === 'BEGIN SALTPACK ENCRYPTED MESSAGE. keDIDMQWYvVR58B FTfTeD305h3lDop TELGyPzBAAawRfZ rss3XwjQHK0irv7 rNIcmnvmn5YlTtK 7O1fFPePZGpx46P ...
 ```
 
-node-saltpack also supports streaming encryption with `EncryptAndArmorStream` or (`EncryptStream` for encrypting
+@vaultys/saltpack also supports streaming encryption with `EncryptAndArmorStream` or (`EncryptStream` for encrypting
 without armor).
 
 ```ts
-import {EncryptAndArmorStream} from '@samuelthomas2774/saltpack';
+import {EncryptAndArmorStream} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const sender_keypair: tweetnacl.BoxKeyPair = tweetnacl.box.keyPair();
@@ -76,7 +64,7 @@ stream.pipe(process.stdout);
 Messages can be decrypted with `dearmorAndDecrypt` (or `decrypt` if the message isn't armored).
 
 ```ts
-import {dearmorAndDecrypt} from '@samuelthomas2774/saltpack';
+import {dearmorAndDecrypt} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const encrypted: string = 'BEGIN SALTPACK ENCRYPTED MESSAGE. keDIDMQWYvVR58B FTfTeD305h3lDop TELGyPzBAAawRfZ rss3XwjQHK0irv7 rNIcmnvmn5YlTtK 7O1fFPePZGpx46P ...';
@@ -102,7 +90,7 @@ try {
 Decryption also supports streaming with `DearmorAndDecryptStream` or `DecryptStream`.
 
 ```ts
-import {DearmorAndDecryptStream} from '@samuelthomas2774/saltpack';
+import {DearmorAndDecryptStream} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const recipient_keypair: tweetnacl.BoxKeyPair = tweetnacl.box.keyPair();
@@ -137,7 +125,7 @@ string.
 `sign` accepts the same arguments as `signAndArmor` but returns a Buffer without armor.
 
 ```ts
-import {signAndArmor} from '@samuelthomas2774/saltpack';
+import {signAndArmor} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const plaintext: Buffer | string = '...';
@@ -151,7 +139,7 @@ const signed = await signAndArmor(plaintext, signing_keypair);
 Streaming is supported with `SignAndArmorStream` or `SignStream`.
 
 ```ts
-import {SignAndArmorStream} from '@samuelthomas2774/saltpack';
+import {SignAndArmorStream} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const signing_keypair: tweetnacl.SignKeyPair = tweetnacl.sign.keyPair();
@@ -167,7 +155,7 @@ stream.pipe(process.stdout);
 Signed messages can be verified and read with `dearmorAndVerify` or `verify`.
 
 ```ts
-import {dearmorAndVerify} from '@samuelthomas2774/saltpack';
+import {dearmorAndVerify} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const signed: string = 'BEGIN SALTPACK SIGNED MESSAGE. kYM5h1pg6qz9UMn j6G9T0lmMjkYOsZ Kn4Acw58u39dn3B kmdpuvqpO3t2QdM CnBX5wO1ZIO8LTd knNlCR0WSEC0000 ...';
@@ -192,7 +180,7 @@ try {
 Reading signed messages also supports streaming with `DearmorAndVerifyStream` or `VerifyStream`.
 
 ```ts
-import {DearmorAndVerifyStream} from '@samuelthomas2774/saltpack';
+import {DearmorAndVerifyStream} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 // If you know the sender's public key you can pass it to DearmorAndVerifyStream and it will emit an error if it doesn't match
@@ -227,7 +215,7 @@ as a string.
 > Detached signing/verifying does not support streaming yet.
 
 ```ts
-import {signDetachedAndArmor} from '@samuelthomas2774/saltpack';
+import {signDetachedAndArmor} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const plaintext: Buffer | string = '...';
@@ -241,7 +229,7 @@ const signed = await signDetachedAndArmor(plaintext, signing_keypair);
 Detached signatures can be verified with `dearmorAndVerifyDetached` or `verifyDetached`.
 
 ```ts
-import {dearmorAndVerifyDetached} from '@samuelthomas2774/saltpack';
+import {dearmorAndVerifyDetached} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const signed: string = 'BEGIN SALTPACK SIGNED MESSAGE. kYM5h1pg6qz9UMn j6G9T0lmMjkYOsZ Kn4Acw58u39dn3B kmdpuvqpO3t2QdM CnBX5wO1ZIO8LTd knNlCR0WSEC0000 ...';
@@ -279,7 +267,7 @@ data as a string.
 `signcrypt` accepts the same arguments as `signcryptAndArmor` but returns a Buffer without armor.
 
 ```ts
-import {signcryptAndArmor, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {signcryptAndArmor, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const plaintext: Buffer | string = '...';
@@ -296,7 +284,7 @@ const signcrypted = await signcryptAndArmor(plaintext, sender_keypair, recipient
 Streaming is supported with `SigncryptAndArmorStream` or (`SigncryptStream` for encrypting without armor).
 
 ```ts
-import {SigncryptAndArmorStream, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {SigncryptAndArmorStream, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const sender_keypair: tweetnacl.SignKeyPair = tweetnacl.sign.keyPair();
@@ -316,7 +304,7 @@ Symmetric recipient keys can be used by passing a `SymmetricKeyRecipient` instan
 unique 32-byte recipient identifier for each symmetric key recipient.
 
 ```ts
-import {signcryptAndArmor, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {signcryptAndArmor, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const recipients_keys: (Uint8Array | SymmetricKeyRecipient)[] = [
@@ -332,7 +320,7 @@ const recipients_keys: (Uint8Array | SymmetricKeyRecipient)[] = [
 Messages can be decrypted with `dearmorAndDesigncrypt` (or `designcrypt` if the message isn't armored).
 
 ```ts
-import {dearmorAndDesigncrypt, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {dearmorAndDesigncrypt, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 const encrypted: string = 'BEGIN SALTPACK ENCRYPTED MESSAGE. keDIDMQWYvVR58B FTfTeDQNHnhYI5G UXZkLqLqVvhmpfZ rss3XwjQHK0irv7 rNIcmnvmn5RTzTR OPZLLRr1s0DEZtS ...';
@@ -359,7 +347,7 @@ try {
 Decryption also supports streaming with `DearmorAndDesigncryptStream` or `DesigncryptStream`.
 
 ```ts
-import {DearmorAndDesigncryptStream, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {DearmorAndDesigncryptStream, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 // TODO: how can multiple keys be provided (as a recipient may have multiple shared symmetric keys that may be used for this message)
@@ -390,7 +378,7 @@ Symmetric keys can be used by passing a `SymmetricKeyRecipient` instance. You mu
 recipient's unique 32-byte recipient identifier.
 
 ```ts
-import {dearmorAndDesigncrypt, SymmetricKeyRecipient} from '@samuelthomas2774/saltpack';
+import {dearmorAndDesigncrypt, SymmetricKeyRecipient} from '@vaultys/saltpack';
 import * as tweetnacl from 'tweetnacl';
 
 // TODO: how can multiple keys be provided (as a recipient may have multiple shared symmetric keys that may be used for this message)
@@ -402,50 +390,21 @@ const recipient_keys: tweetnacl.BoxKeyPair | SymmetricKeyRecipient = new Symmetr
 // Use designcrypt, dearmorAndDesigncrypt, DesigncryptStream or DearmorAndDesigncryptStream...
 ```
 
-Keybase paper keys
----
-
-Keybase paper keys can be used with `KeybasePaperKey.from`.
-
-```ts
-import {dearmorAndDecrypt, KeybasePaperKey, signAndArmor} from '@samuelthomas2774/saltpack';
-
-const paper_key: string = '...';
-
-const keys = await KeybasePaperKey.from(paper_key);
-
-// Encryption
-const encrypted: string = 'BEGIN SALTPACK ENCRYPTED MESSAGE. keDIDMQWYvVR58B FTfTeD305h3lDop TELGyPzBAAawRfZ rss3XwjQHK0irv7 rNIcmnvmn5YlTtK 7O1fFPePZGpx46P ...';
-const recipient_keypair: tweetnacl.BoxKeyPair = keys.encryption_keypair;
-
-const decrypted = await dearmorAndDecrypt(encrypted, recipient_keypair);
-
-// decrypted === '...'
-
-// Signing
-const plaintext: Buffer | string = '...';
-const signing_keypair: tweetnacl.SignKeyPair = keys.signing_keypair;
-
-const signed = await signAndArmor(plaintext, signing_keypair);
-
-// signed === 'BEGIN SALTPACK SIGNED MESSAGE. kYM5h1pg6qz9UMn j6G9T0lmMjkYOsZ Kn4Acw58u39dn3B kmdpuvqpO3t2QdM CnBX5wO1ZIO8LTd knNlCR0WSEC0000 ...
-```
 
 Additional notes
 ---
 
-- node-saltpack always chunks input data to 1 MB payloads.
-- node-saltpack is fully tested with [php-saltpack](https://gitlab.fancy.org.uk/samuel/php-saltpack).
-- node-saltpack is partially tested with [Keybase](https://github.com/keybase/saltpack):
-    - Encrypted messages created by node-saltpack and php-saltpack can be decrypted with Keybase.
-    - Signcrypted messages created by node-saltpack and php-saltpack can be decrypted with Keybase.
-    - Signed messages created by Keybase can be verified with node-saltpack and php-saltpack.
-    - Signed messages created by node-saltpack and php-saltpack can be read by Keybase.
+- @vaultys/saltpack always chunks input data to 1 MB payloads.
+- @vaultys/saltpack is partially tested with [Keybase](https://github.com/keybase/saltpack):
+    - Encrypted messages created by @vaultys/saltpack can be decrypted with Keybase.
+    - Signcrypted messages created by @vaultys/saltpack can be decrypted with Keybase.
+    - Signed messages created by Keybase can be verified with @vaultys/saltpack.
+    - Signed messages created by @vaultys/saltpack can be read by Keybase.
 
 License
 ---
 
-node-saltpack is released under the [MIT license](LICENSE). Saltpack is designed by the Keybase developers,
+@vaultys/saltpack is released under the [MIT license](LICENSE). Saltpack is designed by the Keybase developers,
 and uses [NaCl](https://nacl.cr.yp.to) for crypto and [MessagePack](https://msgpack.org) for binary encoding.
-node-saltpack uses [TweetNaCl.js](https://tweetnacl.js.org). node-saltpack and php-saltpack's armoring
+@vaultys/saltpack uses [TweetNaCl.js](https://tweetnacl.js.org). @vaultys/saltpack armoring
 implementation is based on [saltpack-ruby](https://github.com/ged/saltpack-ruby).

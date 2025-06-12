@@ -78,7 +78,7 @@ export default class SignedMessageHeader extends Header {
   }
 
   static decode(encoded: Uint8Array, unwrapped = false) {
-    const [header_hash, data] = super.decode1(encoded, unwrapped);
+    const [, data] = super.decode1(encoded, unwrapped);
 
     if (data[2] !== MessageType.ATTACHED_SIGNING && data[2] !== MessageType.DETACHED_SIGNING) throw new Error("Invalid data");
 
