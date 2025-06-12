@@ -1,6 +1,7 @@
-import { createHmac } from "crypto";
 import { box, secretbox } from "tweetnacl";
 import { isBufferOrUint8Array } from "../util";
+import { hmac } from "@noble/hashes/hmac";
+import { sha512 } from "@noble/hashes/sha2";
 
 export class SymmetricKeyRecipient {
   constructor(
@@ -68,7 +69,7 @@ export default class SigncryptedMessageRecipient {
     // For recipient symmetric keys, first derive a shared symmetric key. Concatenate the ephemeral
     // public Curve25519 key and the recipient symmetric key, and HMAC-SHA512 them under the key saltpack
     // signcryption derived symmetric key. The derived key is the first 32 bytes of that HMAC.
-    const derived_key = createHmac("sha512", this.HMAC_KEY_SYMMETRIC).update(ephemeral_public_key).update(shared_symmetric_key).digest().slice(0, 32);
+    const derived_key = Buffer.from(hmac(sha512, this.HMAC_KEY_SYMMETRIC, Buffer.concat([ephemeral_public_key, shared_symmetric_key])).slice(0, 32));
 
     const recipient_index = this.generateRecipientIndex(index);
 
@@ -109,7 +110,7 @@ export default class SigncryptedMessageRecipient {
     // To compute the recipient identifier, concatenate the derived symmetric key and the
     // saltpack_recipsbXXXXXXXX nonce together, and HMAC-SHA512 them under the key saltpack signcryption box
     // key identifier. The identifier is the first 32 bytes of that HMAC.
-    const recipient_identifier = createHmac("sha512", this.HMAC_KEY).update(shared_symmetric_key).update(recipient_index).digest().slice(0, 32);
+    const recipient_identifier = Buffer.from(hmac(sha512, this.HMAC_KEY, Buffer.concat([shared_symmetric_key, recipient_index])).slice(0, 32));
 
     return { shared_symmetric_key, recipient_identifier };
   }
@@ -125,7 +126,7 @@ export default class SigncryptedMessageRecipient {
     // To compute the recipient identifier, concatenate the derived symmetric key and the
     // saltpack_recipsbXXXXXXXX nonce together, and HMAC-SHA512 them under the key saltpack signcryption box
     // key identifier. The identifier is the first 32 bytes of that HMAC.
-    const recipient_identifier = createHmac("sha512", this.HMAC_KEY).update(shared_symmetric_key).update(recipient_index).digest().slice(0, 32);
+    const recipient_identifier = Buffer.from(hmac(sha512, this.HMAC_KEY, Buffer.concat([shared_symmetric_key, recipient_index])).slice(0, 32));
 
     return { shared_symmetric_key, recipient_identifier };
   }

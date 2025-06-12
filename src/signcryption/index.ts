@@ -3,8 +3,7 @@ import SigncryptedMessageRecipient, { SymmetricKeyRecipient } from "./recipient"
 import SigncryptedMessagePayload from "./payload";
 import { chunkBuffer } from "../util";
 import { Readable, Transform, TransformCallback } from "stream";
-import { BoxKeyPair, SignKeyPair, box } from "tweetnacl";
-import { randomBytes } from "crypto";
+import { BoxKeyPair, SignKeyPair, box, randomBytes } from "tweetnacl";
 import { decodeMultiStream, Decoder } from "@msgpack/msgpack";
 
 const CHUNK_LENGTH = 1024 * 1024;
@@ -63,7 +62,7 @@ export class SigncryptStream extends Transform {
     super();
 
     // 1. Generate a random 32-byte payload key.
-    this.payload_key = debug_fix_key ?? randomBytes(32);
+    this.payload_key = debug_fix_key ?? Buffer.from(randomBytes(32));
 
     // 2. Generate a random ephemeral keypair, using crypto_box_keypair.
     this.ephemeral_keypair = debug_fix_keypair ?? box.keyPair();

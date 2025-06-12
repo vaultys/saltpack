@@ -1,6 +1,6 @@
 {
   "name": "@vaultys/saltpack",
-  "version": "1.0.0-beta2",
+  "version": "1.0.0-beta3",
   "description": "Javascript implementation of Saltpack.",
   "keywords": [
     "saltpack",
@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@msgpack/msgpack": "^3.1.2",
+    "@noble/hashes": "^1.8.0",
     "lodash.chunk": "^4.2.0",
     "pumpify": "^2.0.1",
     "tweetnacl": "^1.0.3"

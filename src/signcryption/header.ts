@@ -3,8 +3,9 @@ import SigncryptedMessageRecipient from "./recipient";
 
 import { secretbox } from "tweetnacl";
 import { isBufferOrUint8Array } from "../util";
-import { createHash, createHmac } from "crypto";
 import { encode } from "@msgpack/msgpack";
+import { sha512 } from "@noble/hashes/sha2";
+import { hmac } from "@noble/hashes/hmac";
 
 export default class SigncryptedMessageHeader extends Header {
   static readonly SENDER_KEY_SECRETBOX_NONCE = Buffer.from("saltpack_sender_key_sbox");
@@ -72,7 +73,7 @@ export default class SigncryptedMessageHeader extends Header {
     return SigncryptedMessageHeader.encodeHeader(this.public_key, this.sender_secretbox, this.recipients);
   }
 
-  static encodeHeader(public_key: Uint8Array, sender: Uint8Array, recipients: SigncryptedMessageRecipient[]): [Buffer, Buffer] {
+  static encodeHeader(public_key: Uint8Array, sender: Uint8Array, recipients: SigncryptedMessageRecipient[]) {
     const data = [
       "saltpack",
       [2, 0],
@@ -91,7 +92,7 @@ export default class SigncryptedMessageHeader extends Header {
 
     const encoded = encode(data);
 
-    const header_hash = createHash("sha512").update(encoded).digest();
+    const header_hash = sha512.create().update(encoded).digest();
 
     return [header_hash, Buffer.from(encode(encoded))];
   }
@@ -150,7 +151,7 @@ export default class SigncryptedMessageHeader extends Header {
     // of the recipient entries match, decrypt the payload key. If not, decryption fails, and the client should
     // report that the current user isn't a recipient of this message.
 
-    const derived_key = createHmac("sha512", SigncryptedMessageRecipient.HMAC_KEY_SYMMETRIC).update(this.public_key).update(shared_symmetric_key).digest().slice(0, 32);
+    const derived_key = hmac(sha512, SigncryptedMessageRecipient.HMAC_KEY_SYMMETRIC, Buffer.concat([this.public_key, shared_symmetric_key])).slice(0, 32);
 
     const identifier = recipient_identifier ? Buffer.from(recipient_identifier) : null;
 

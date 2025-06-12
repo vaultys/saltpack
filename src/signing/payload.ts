@@ -1,7 +1,7 @@
 import { decode, encode } from "@msgpack/msgpack";
-import { createHash } from "crypto";
 import { sign } from "tweetnacl";
 import SignedMessageHeader from "./header";
+import { sha512 } from "@noble/hashes/sha2";
 
 // [
 //     final flag,
@@ -58,7 +58,8 @@ export default class SignedMessagePayload {
 
     return Buffer.concat([
       this.PAYLOAD_SIGNATURE_PREFIX,
-      createHash("sha512")
+      sha512
+        .create()
         .update(header_hash)
         .update(index_buffer)
         .update(final ? "\x01" : "\x00")

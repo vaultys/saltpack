@@ -1,7 +1,7 @@
 import SigncryptedMessageHeader from "./header";
 import { sign, secretbox } from "tweetnacl";
-import { createHash } from "crypto";
 import { decode, encode } from "@msgpack/msgpack";
+import { sha512 } from "@noble/hashes/sha2";
 // [
 //     signcrypted chunk,
 //     final flag,
@@ -68,7 +68,7 @@ export default class SigncryptedMessagePayload {
     //     - the final flag byte, 0x00 for false and 0x01 for true
     //     - the SHA512 hash of the plaintext
 
-    return Buffer.concat([Buffer.from("saltpack encrypted signature"), Buffer.from([0x00]), header_hash, nonce, Buffer.from([final ? 0x01 : 0x00]), createHash("sha512").update(data).digest()]);
+    return Buffer.concat([Buffer.from("saltpack encrypted signature"), Buffer.from([0x00]), header_hash, nonce, Buffer.from([final ? 0x01 : 0x00]), sha512.create().update(data).digest()]);
   }
 
   encode() {

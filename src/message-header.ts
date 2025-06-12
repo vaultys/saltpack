@@ -1,5 +1,5 @@
 import { decode } from "@msgpack/msgpack";
-import { createHash } from "crypto";
+import { sha512 } from "@noble/hashes/sha2";
 
 export enum MessageType {
   ENCRYPTION = 0,
@@ -9,10 +9,10 @@ export enum MessageType {
 }
 
 export default class Header {
-  static decode1(encoded: Uint8Array, unwrapped = false): [Buffer, unknown[]] {
+  static decode1(encoded: Uint8Array, unwrapped = false) {
     // 1-3
     const data = unwrapped ? encoded : (decode(encoded) as Uint8Array);
-    const header_hash = createHash("sha512").update(data).digest();
+    const header_hash = sha512.create().update(data).digest();
     const inner = decode(data);
 
     // 4

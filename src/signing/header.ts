@@ -1,8 +1,8 @@
 import { encode } from "@msgpack/msgpack";
-import { createHash, randomBytes } from "crypto";
-import { sign } from "tweetnacl";
+import { randomBytes, sign } from "tweetnacl";
 import Header, { MessageType } from "../message-header";
 import { isBufferOrUint8Array } from "../util";
+import { sha512 } from "@noble/hashes/sha2";
 
 // [
 //     format name,
@@ -67,12 +67,12 @@ export default class SignedMessageHeader extends Header {
     return SignedMessageHeader.encodeHeader(this.public_key, this.nonce, this.attached);
   }
 
-  static encodeHeader(public_key: Uint8Array, nonce: Uint8Array, attached: boolean): [Buffer, Buffer] {
+  static encodeHeader(public_key: Uint8Array, nonce: Uint8Array, attached: boolean) {
     const data = ["saltpack", [2, 0], attached ? MessageType.ATTACHED_SIGNING : MessageType.DETACHED_SIGNING, public_key, nonce];
 
     const encoded = encode(data);
 
-    const header_hash = createHash("sha512").update(encoded).digest();
+    const header_hash = sha512.create().update(encoded).digest();
 
     return [header_hash, Buffer.from(encode(encoded))];
   }
@@ -92,7 +92,7 @@ export default class SignedMessageHeader extends Header {
       throw new Error("Header attached is true");
     }
 
-    const hash = createHash("sha512").update(this.hash).update(data).digest();
+    const hash = sha512.create().update(this.hash).update(data).digest();
 
     const sign_data = Buffer.concat([SignedMessageHeader.DETACHED_SIGNATURE_PREFIX, hash]);
 
@@ -104,7 +104,7 @@ export default class SignedMessageHeader extends Header {
       throw new Error("Header attached is true");
     }
 
-    const hash = createHash("sha512").update(this.hash).update(data).digest();
+    const hash = sha512.create().update(this.hash).update(data).digest();
 
     const sign_data = Buffer.concat([SignedMessageHeader.DETACHED_SIGNATURE_PREFIX, hash]);
 
