@@ -1,75 +1,31 @@
-export {
-    armor,
-    ArmorStream,
+export { armor, ArmorStream, dearmor, DearmorStream, DearmorResult, ArmorHeaderInfo, Options as ArmorOptions } from "./armor";
 
-    dearmor,
-    DearmorStream,
+export { MessageType } from "./message-header";
 
-    DearmorResult,
-    ArmorHeaderInfo,
-    Options as ArmorOptions,
-} from './armor.js';
+export { encrypt, EncryptStream, decrypt, DecryptStream, DecryptResult } from "./encryption";
 
-export { MessageType } from './message-header.js';
+export { sign, SignStream, verify, VerifyStream, signDetached, verifyDetached } from "./signing";
+
+export { signcrypt, SigncryptStream, designcrypt, DesigncryptStream, DesigncryptResult } from "./signcryption";
+export { SymmetricKeyRecipient } from "./signcryption/recipient";
 
 export {
-    encrypt,
-    EncryptStream,
-
-    decrypt,
-    DecryptStream,
-
-    DecryptResult,
-} from './encryption/index.js';
-
-export {
-    sign,
-    SignStream,
-
-    verify,
-    VerifyStream,
-
-    signDetached,
-    verifyDetached,
-} from './signing/index.js';
-
-export {
-    signcrypt,
-    SigncryptStream,
-
-    designcrypt,
-    DesigncryptStream,
-
-    DesigncryptResult,
-} from './signcryption/index.js';
-export {
-    SymmetricKeyRecipient,
-} from './signcryption/recipient.js';
-
-export {
-    encryptAndArmor,
-    dearmorAndDecrypt,
-    DearmorAndDecryptResult,
-    EncryptAndArmorStream,
-    DearmorAndDecryptStream,
-
-    signAndArmor,
-    verifyArmored,
-    DearmorAndVerifyResult,
-    SignAndArmorStream,
-    DearmorAndVerifyStream,
-
-    signDetachedAndArmor,
-    verifyDetachedArmored,
-    DearmorAndVerifyDetachedResult,
-
-    signcryptAndArmor,
-    dearmorAndDesigncrypt,
-    DearmorAndDesigncryptResult,
-    SigncryptAndArmorStream,
-    DearmorAndDesigncryptStream,
-} from './with-armor.js';
-
-export {
-    PaperKey as KeybasePaperKey,
-} from './kb-paperkeys.js';
+  encryptAndArmor,
+  dearmorAndDecrypt,
+  DearmorAndDecryptResult,
+  EncryptAndArmorStream,
+  DearmorAndDecryptStream,
+  signAndArmor,
+  verifyArmored,
+  DearmorAndVerifyResult,
+  SignAndArmorStream,
+  DearmorAndVerifyStream,
+  signDetachedAndArmor,
+  verifyDetachedArmored,
+  DearmorAndVerifyDetachedResult,
+  signcryptAndArmor,
+  dearmorAndDesigncrypt,
+  DearmorAndDesigncryptResult,
+  SigncryptAndArmorStream,
+  DearmorAndDesigncryptStream,
+} from "./with-armor";

@@ -1,11 +1,13 @@
-node-saltpack
+@vaultys/saltpack
 ===
 
-A Node.js/TypeScript implementation of [Keybase](https://keybase.io)'s [Saltpack](https://saltpack.org)
+A Javascript implementation of [Keybase](https://keybase.io)'s [Saltpack](https://saltpack.org)
 encrypted/signed messaging format.
 
-node-saltpack implements version 2.0 of Saltpack. All message types (encryption, attached signing,
+@vaultys/saltpack implements version 2.0 of Saltpack. All message types (encryption, attached signing,
 detached signing and signcryption) are supported.
+
+@vaultys/saltpack works on node and browser (you need to use crypto-browserify, vm-browserify and stream-browserify)
 
 Installation
 ---

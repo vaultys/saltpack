@@ -1,202 +1,150 @@
-
-import * as crypto from 'crypto';
-import tweetnacl from 'tweetnacl';
-import { isBufferOrUint8Array } from '../util.js';
+import { createHash } from "crypto";
+import { box } from "tweetnacl";
+import { isBufferOrUint8Array } from "../util";
 
 export default class EncryptedMessageRecipient {
-    static readonly PAYLOAD_KEY_BOX_NONCE_PREFIX_V2 = Buffer.from('saltpack_recipsb');
+  static readonly PAYLOAD_KEY_BOX_NONCE_PREFIX_V2 = Buffer.from("saltpack_recipsb");
 
-    /** The recipient's X25519 public key, or null if the recipient is anonymous and we aren't the sender */
-    readonly public_key: Uint8Array | null;
-    /** The NaCl box containing the payload key for this recipient */
-    readonly encrypted_payload_key: Uint8Array;
-    /** The recipient index, starting from zero */
-    readonly index: bigint;
-    /** The nonce for `encrypted_payload_key` */
-    readonly recipient_index: Buffer;
-    /** `true` if this recipient is anonymous */
-    readonly anonymous: boolean;
-    /** The MAC key for this recipient (this is used to generate the per-payload authenticators for this recipient) */
-    readonly mac_key: Buffer | null = null;
+  /** The recipient's X25519 public key, or null if the recipient is anonymous and we aren't the sender */
+  readonly public_key: Uint8Array | null;
+  /** The NaCl box containing the payload key for this recipient */
+  readonly encrypted_payload_key: Uint8Array;
+  /** The recipient index, starting from zero */
+  readonly index: bigint;
+  /** The nonce for `encrypted_payload_key` */
+  readonly recipient_index: Buffer;
+  /** `true` if this recipient is anonymous */
+  readonly anonymous: boolean;
+  /** The MAC key for this recipient (this is used to generate the per-payload authenticators for this recipient) */
+  readonly mac_key: Buffer | null = null;
 
-    constructor(public_key: Uint8Array | null, encrypted_payload_key: Uint8Array, index: bigint, anonymous = false) {
-        if (public_key !== null && (!isBufferOrUint8Array(public_key) || public_key.length !== 32)) {
-            throw new TypeError('recipient_public_key must be a 32 byte Uint8Array');
-        }
-        if (!isBufferOrUint8Array(encrypted_payload_key) || encrypted_payload_key.length !== 48) {
-            throw new TypeError('payload_key_box must be a 48 byte Uint8Array');
-        }
-        if (typeof index !== 'bigint') {
-            throw new TypeError('index must be a bigint');
-        }
-        if (typeof anonymous !== 'boolean') {
-            throw new TypeError('anonymous must be a boolean');
-        }
-
-        this.public_key = public_key;
-        this.encrypted_payload_key = encrypted_payload_key;
-        this.index = index;
-        this.recipient_index = EncryptedMessageRecipient.generateRecipientIndex(index);
-        this.anonymous = anonymous;
+  constructor(public_key: Uint8Array | null, encrypted_payload_key: Uint8Array, index: bigint, anonymous = false) {
+    if (public_key !== null && (!isBufferOrUint8Array(public_key) || public_key.length !== 32)) {
+      throw new TypeError("recipient_public_key must be a 32 byte Uint8Array");
+    }
+    if (!isBufferOrUint8Array(encrypted_payload_key) || encrypted_payload_key.length !== 48) {
+      throw new TypeError("payload_key_box must be a 48 byte Uint8Array");
+    }
+    if (typeof index !== "bigint") {
+      throw new TypeError("index must be a bigint");
+    }
+    if (typeof anonymous !== "boolean") {
+      throw new TypeError("anonymous must be a boolean");
     }
 
-    /** @private */
-    setPublicKey(public_key: Uint8Array) {
-        // @ts-expect-error
-        this.public_key = public_key;
-    }
+    this.public_key = public_key;
+    this.encrypted_payload_key = encrypted_payload_key;
+    this.index = index;
+    this.recipient_index = EncryptedMessageRecipient.generateRecipientIndex(index);
+    this.anonymous = anonymous;
+  }
 
-    static create(
-        public_key: Uint8Array, ephemeral_private_key: Uint8Array, payload_key: Uint8Array, index: number | bigint,
-        anonymous = false
-    ): EncryptedMessageRecipient {
-        if (typeof index === 'number') index = BigInt(index);
+  /** @private */
+  setPublicKey(public_key: Uint8Array) {
+    // @ts-expect-error
+    this.public_key = public_key;
+  }
 
-        const recipient_index = this.generateRecipientIndex(index);
+  static create(public_key: Uint8Array, ephemeral_private_key: Uint8Array, payload_key: Uint8Array, index: number | bigint, anonymous = false): EncryptedMessageRecipient {
+    if (typeof index === "number") index = BigInt(index);
 
-        // 4. For each recipient, encrypt the payload key using crypto_box with the recipient's public key, the ephemeral private key, and the nonce saltpack_recipsbXXXXXXXX. XXXXXXXX is 8-byte big-endian unsigned recipient index, where the first recipient is index zero. Pair these with the recipients' public keys, or null for anonymous recipients, and collect the pairs into the recipients list.
-        const encrypted_payload_key = tweetnacl.box(
-            Uint8Array.from(payload_key),
-            Uint8Array.from(recipient_index),
-            Uint8Array.from(public_key),
-            Uint8Array.from(ephemeral_private_key),
-        );
+    const recipient_index = this.generateRecipientIndex(index);
 
-        return new this(public_key, encrypted_payload_key, index, anonymous);
-    }
+    // 4. For each recipient, encrypt the payload key using crypto_box with the recipient's public key, the ephemeral private key, and the nonce saltpack_recipsbXXXXXXXX. XXXXXXXX is 8-byte big-endian unsigned recipient index, where the first recipient is index zero. Pair these with the recipients' public keys, or null for anonymous recipients, and collect the pairs into the recipients list.
+    const encrypted_payload_key = box(Uint8Array.from(payload_key), Uint8Array.from(recipient_index), Uint8Array.from(public_key), Uint8Array.from(ephemeral_private_key));
 
-    static from(
-        public_key: Uint8Array | null, encrypted_payload_key: Uint8Array, index: number | bigint
-    ): EncryptedMessageRecipient {
-        if (typeof index === 'number') index = BigInt(index);
+    return new this(public_key, encrypted_payload_key, index, anonymous);
+  }
 
-        return new this(public_key, encrypted_payload_key, index, public_key === null);
-    }
+  static from(public_key: Uint8Array | null, encrypted_payload_key: Uint8Array, index: number | bigint): EncryptedMessageRecipient {
+    if (typeof index === "number") index = BigInt(index);
 
-    static generateRecipientIndex(index: bigint): Buffer {
-        const buffer = Buffer.alloc(8);
-        buffer.writeBigUInt64BE(index);
-        return Buffer.concat([this.PAYLOAD_KEY_BOX_NONCE_PREFIX_V2, buffer]);
-    }
+    return new this(public_key, encrypted_payload_key, index, public_key === null);
+  }
 
-    /**
-     * Decrypts the payload key, returns null if wrong recipient.
-     */
-    decryptPayloadKey(
-        ephemeral_public_key: Uint8Array, recipient_private_key: Uint8Array, secret: Uint8Array | null = null
-    ): Uint8Array | null {
-        const payload_key = secret ? tweetnacl.box.open.after(
-            Uint8Array.from(this.encrypted_payload_key),
-            Uint8Array.from(this.recipient_index),
-            Uint8Array.from(secret),
-        ) : tweetnacl.box.open(
-            Uint8Array.from(this.encrypted_payload_key),
-            Uint8Array.from(this.recipient_index),
-            Uint8Array.from(ephemeral_public_key),
-            Uint8Array.from(recipient_private_key),
-        );
+  static generateRecipientIndex(index: bigint): Buffer {
+    const buffer = Buffer.alloc(8);
+    buffer.writeBigUInt64BE(index);
+    return Buffer.concat([this.PAYLOAD_KEY_BOX_NONCE_PREFIX_V2, buffer]);
+  }
 
-        if (!payload_key) return null;
+  /**
+   * Decrypts the payload key, returns null if wrong recipient.
+   */
+  decryptPayloadKey(ephemeral_public_key: Uint8Array, recipient_private_key: Uint8Array, secret: Uint8Array | null = null): Uint8Array | null {
+    const payload_key = secret
+      ? box.open.after(Uint8Array.from(this.encrypted_payload_key), Uint8Array.from(this.recipient_index), Uint8Array.from(secret))
+      : box.open(Uint8Array.from(this.encrypted_payload_key), Uint8Array.from(this.recipient_index), Uint8Array.from(ephemeral_public_key), Uint8Array.from(recipient_private_key));
 
-        return payload_key;
-    }
+    if (!payload_key) return null;
 
-    generateMacKeyForSender(
-        header_hash: Uint8Array, ephemeral_private_key: Uint8Array, sender_private_key: Uint8Array,
-        public_key: Uint8Array | null = null
-    ): Buffer {
-        if (!public_key && this.public_key) public_key = this.public_key;
-        if (!public_key) throw new Error('Generating MAC key requires the recipient\'s public key');
+    return payload_key;
+  }
 
-        // 9. Concatenate the first 16 bytes of the header hash from step 7 above, with the recipient index from
-        // step 4 above. This is the basis of each recipient's MAC nonce.
-        const index_buffer = Buffer.alloc(8);
-        index_buffer.writeBigUInt64BE(this.index);
-        const nonce = Buffer.concat([header_hash.slice(0, 16), index_buffer]);
+  generateMacKeyForSender(header_hash: Uint8Array, ephemeral_private_key: Uint8Array, sender_private_key: Uint8Array, public_key: Uint8Array | null = null): Buffer {
+    if (!public_key && this.public_key) public_key = this.public_key;
+    if (!public_key) throw new Error("Generating MAC key requires the recipient's public key");
 
-        // 10. Clear the least significant bit of byte 15. That is: nonce[15] &= 0xfe.
-        nonce[15] &= 0xfe;
+    // 9. Concatenate the first 16 bytes of the header hash from step 7 above, with the recipient index from
+    // step 4 above. This is the basis of each recipient's MAC nonce.
+    const index_buffer = Buffer.alloc(8);
+    index_buffer.writeBigUInt64BE(this.index);
+    const nonce = Buffer.concat([header_hash.slice(0, 16), index_buffer]);
 
-        // 11. Encrypt 32 zero bytes using crypto_box with the recipient's public key, the sender's long-term
-        // private key, and the nonce from the previous step.
-        const box_1 = tweetnacl.box(
-            Uint8Array.from(Buffer.alloc(32).fill('\0')),
-            Uint8Array.from(nonce),
-            Uint8Array.from(public_key),
-            Uint8Array.from(sender_private_key),
-        );
+    // 10. Clear the least significant bit of byte 15. That is: nonce[15] &= 0xfe.
+    nonce[15] &= 0xfe;
 
-        // 12. Modify the nonce from step 10 by setting the least significant bit of byte
-        // 12.1. That is: nonce[15] |= 0x01.
-        nonce[15] |= 0x01;
+    // 11. Encrypt 32 zero bytes using crypto_box with the recipient's public key, the sender's long-term
+    // private key, and the nonce from the previous step.
+    const box_1 = box(Uint8Array.from(Buffer.alloc(32).fill("\0")), Uint8Array.from(nonce), Uint8Array.from(public_key), Uint8Array.from(sender_private_key));
 
-        // 13. Encrypt 32 zero bytes again, as in step 11, but using the ephemeral private key rather than the
-        // sender's long term private key.
-        const box_2 = tweetnacl.box(
-            Uint8Array.from(Buffer.alloc(32).fill('\0')),
-            Uint8Array.from(nonce),
-            Uint8Array.from(public_key),
-            Uint8Array.from(ephemeral_private_key),
-        );
+    // 12. Modify the nonce from step 10 by setting the least significant bit of byte
+    // 12.1. That is: nonce[15] |= 0x01.
+    nonce[15] |= 0x01;
 
-        // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
-        // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
-        const mac_key = crypto.createHash('sha512')
-            .update(box_1.slice(-32))
-            .update(box_2.slice(-32))
-            .digest().slice(0, 32);
+    // 13. Encrypt 32 zero bytes again, as in step 11, but using the ephemeral private key rather than the
+    // sender's long term private key.
+    const box_2 = box(Uint8Array.from(Buffer.alloc(32).fill("\0")), Uint8Array.from(nonce), Uint8Array.from(public_key), Uint8Array.from(ephemeral_private_key));
 
-        // @ts-expect-error
-        this.mac_key = mac_key;
+    // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
+    // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
+    const mac_key = createHash("sha512").update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
 
-        return mac_key;
-    }
+    // @ts-expect-error
+    this.mac_key = mac_key;
 
-    generateMacKeyForRecipient(
-        header_hash: Uint8Array, ephemeral_public_key: Uint8Array, sender_public_key: Uint8Array,
-        private_key: Uint8Array
-    ): Buffer {
-        // 9. Concatenate the first 16 bytes of the header hash from step 7 above, with the recipient index from
-        // step 4 above. This is the basis of each recipient's MAC nonce.
-        const index_buffer = Buffer.alloc(8);
-        index_buffer.writeBigUInt64BE(this.index);
-        const nonce = Buffer.concat([header_hash.slice(0, 16), index_buffer]);
+    return mac_key;
+  }
 
-        // 10. Clear the least significant bit of byte 15. That is: nonce[15] &= 0xfe.
-        nonce[15] &= 0xfe;
+  generateMacKeyForRecipient(header_hash: Uint8Array, ephemeral_public_key: Uint8Array, sender_public_key: Uint8Array, private_key: Uint8Array): Buffer {
+    // 9. Concatenate the first 16 bytes of the header hash from step 7 above, with the recipient index from
+    // step 4 above. This is the basis of each recipient's MAC nonce.
+    const index_buffer = Buffer.alloc(8);
+    index_buffer.writeBigUInt64BE(this.index);
+    const nonce = Buffer.concat([header_hash.slice(0, 16), index_buffer]);
 
-        // 11. Encrypt 32 zero bytes using crypto_box with the recipient's public key, the sender's long-term
-        // private key, and the nonce from the previous step.
-        const box_1 = tweetnacl.box(
-            Uint8Array.from(Buffer.alloc(32).fill('\0')),
-            Uint8Array.from(nonce),
-            Uint8Array.from(sender_public_key),
-            Uint8Array.from(private_key),
-        );
+    // 10. Clear the least significant bit of byte 15. That is: nonce[15] &= 0xfe.
+    nonce[15] &= 0xfe;
 
-        // 12. Modify the nonce from step 10 by setting the least significant bit of byte
-        // 12.1. That is: nonce[15] |= 0x01.
-        nonce[15] |= 0x01;
+    // 11. Encrypt 32 zero bytes using crypto_box with the recipient's public key, the sender's long-term
+    // private key, and the nonce from the previous step.
+    const box_1 = box(Uint8Array.from(Buffer.alloc(32).fill("\0")), Uint8Array.from(nonce), Uint8Array.from(sender_public_key), Uint8Array.from(private_key));
 
-        // 13. Encrypt 32 zero bytes again, as in step 11, but using the ephemeral private key rather than the
-        // sender's long term private key.
-        const box_2 = tweetnacl.box(
-            Uint8Array.from(Buffer.alloc(32).fill('\0')),
-            Uint8Array.from(nonce),
-            Uint8Array.from(ephemeral_public_key),
-            Uint8Array.from(private_key),
-        );
+    // 12. Modify the nonce from step 10 by setting the least significant bit of byte
+    // 12.1. That is: nonce[15] |= 0x01.
+    nonce[15] |= 0x01;
 
-        // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
-        // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
-        const mac_key = crypto.createHash('sha512')
-            .update(box_1.slice(-32))
-            .update(box_2.slice(-32))
-            .digest().slice(0, 32);
+    // 13. Encrypt 32 zero bytes again, as in step 11, but using the ephemeral private key rather than the
+    // sender's long term private key.
+    const box_2 = box(Uint8Array.from(Buffer.alloc(32).fill("\0")), Uint8Array.from(nonce), Uint8Array.from(ephemeral_public_key), Uint8Array.from(private_key));
 
-        // @ts-expect-error
-        this.mac_key = mac_key;
+    // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
+    // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
+    const mac_key = createHash("sha512").update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
 
-        return mac_key;
-    }
+    // @ts-expect-error
+    this.mac_key = mac_key;
+
+    return mac_key;
+  }
 }

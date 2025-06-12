@@ -1,49 +1,50 @@
 {
-    "name": "@samuelthomas2774/saltpack",
-    "version": "0.4.0",
-    "description": "Node.js implementation of Saltpack.",
-    "keywords": [
-        "saltpack",
-        "keybase"
-    ],
-    "license": "MIT",
-    "author": {
-        "name": "Samuel Elliott",
-        "url": "https://samuelthomas2774.github.io"
-    },
-    "main": "dist/index.js",
-    "type": "module",
-    "types": "dist/index.d.ts",
-    "repository": {
-        "type": "git",
-        "url": "https://gitlab.fancy.org.uk/samuel/node-saltpack.git"
-    },
-    "files": [
-        "dist",
-        "!dist/**/*.map",
-        "!dist/__tests__"
-    ],
-    "engines": {
-        "node": "^12.0.0 || >=14.0.0"
-    },
-    "dependencies": {
-        "@msgpack/msgpack": "^1.12.2",
-        "lodash.chunk": "^4.2.0",
-        "pumpify": "^2.0.1",
-        "tweetnacl": "^1.0.3"
-    },
-    "devDependencies": {
-        "@types/jest": "^29.4.0",
-        "@types/lodash.chunk": "^4.2.7",
-        "@types/node": "^16.11.36",
-        "@types/pumpify": "^1.4.1",
-        "jest": "^29.4.2",
-        "typescript": "^4.9.5"
-    },
-    "scripts": {
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js dist/__tests__/**.js --color --verbose"
-    },
-    "publishConfig": {
-        "access": "public"
-    }
+  "name": "@vaultys/saltpack",
+  "version": "1.0.0-beta",
+  "description": "Javascript implementation of Saltpack.",
+  "keywords": [
+    "saltpack",
+    "keybase"
+  ],
+  "license": "MIT",
+  "main": "dist/index.js",
+  "type": "module",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vaultys/saltpack.git"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "!__tests__"
+  ],
+  "engines": {
+    "node": "^12.0.0 || >=14.0.0"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^3.1.2",
+    "lodash.chunk": "^4.2.0",
+    "pumpify": "^2.0.1",
+    "tweetnacl": "^1.0.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/lodash.chunk": "^4.2.9",
+    "@types/node": "^24.0.1",
+    "@types/pumpify": "^1.4.4",
+    "buffer": "^6.0.3",
+    "jest": "^30.0.0",
+    "process": "^0.11.10",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "TEST=true jest __tests__/*.js --color --verbose"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
 }
