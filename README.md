@@ -403,7 +403,7 @@ Additional notes
 
 License
 ---
-
+@vaultys/saltpack is a fork of @samuelthomas2774/saltpack.
 @vaultys/saltpack is released under the [MIT license](LICENSE). Saltpack is designed by the Keybase developers,
 and uses [NaCl](https://nacl.cr.yp.to) for crypto and [MessagePack](https://msgpack.org) for binary encoding.
 @vaultys/saltpack uses [TweetNaCl.js](https://tweetnacl.js.org). @vaultys/saltpack armoring
