@@ -3,14 +3,14 @@ import { sign, verify, SignStream, VerifyStream, VerifyResult, signDetached, ver
 import { signcrypt, designcrypt, SigncryptStream, DesigncryptStream, DesigncryptResult } from "./signcryption";
 import { SymmetricKeyRecipient } from "./signcryption/recipient";
 import { armor, dearmor, ArmorStream, DearmorStream, Options as ArmorOptions, MessageType, ArmorHeaderInfo, DearmorResult } from "./armor";
-import tweetnacl from "tweetnacl";
 import Pumpify from "pumpify";
+import { BoxKeyPair, SignKeyPair } from "tweetnacl";
 
-export async function encryptAndArmor(data: Uint8Array | string, keypair: tweetnacl.BoxKeyPair | null, recipients_keys: Uint8Array[]) {
+export async function encryptAndArmor(data: Uint8Array | string, keypair: BoxKeyPair | null, recipients_keys: Uint8Array[]) {
   const encrypted = await encrypt(data, keypair, recipients_keys);
   return armor(encrypted, { message_type: MessageType.ENCRYPTED_MESSAGE });
 }
-export async function dearmorAndDecrypt(encrypted: string, keypair: tweetnacl.BoxKeyPair, sender?: Uint8Array | null): Promise<DearmorAndDecryptResult> {
+export async function dearmorAndDecrypt(encrypted: string, keypair: BoxKeyPair, sender?: Uint8Array | null): Promise<DearmorAndDecryptResult> {
   const dearmored = dearmor(encrypted);
   return Object.assign(await decrypt(dearmored, keypair, sender), {
     remaining: dearmored.remaining,
@@ -21,7 +21,7 @@ export async function dearmorAndDecrypt(encrypted: string, keypair: tweetnacl.Bo
 export type DearmorAndDecryptResult = DearmorResult & DecryptResult;
 
 export class EncryptAndArmorStream extends Pumpify {
-  constructor(keypair: tweetnacl.BoxKeyPair | null, recipients_keys: Uint8Array[], armor_options?: Partial<ArmorOptions>) {
+  constructor(keypair: BoxKeyPair | null, recipients_keys: Uint8Array[], armor_options?: Partial<ArmorOptions>) {
     const encrypt = new EncryptStream(keypair, recipients_keys);
     const armor = new ArmorStream(
       Object.assign(
@@ -39,7 +39,7 @@ export class DearmorAndDecryptStream extends Pumpify {
   readonly dearmor: DearmorStream;
   readonly decrypt: DecryptStream;
 
-  constructor(keypair: tweetnacl.BoxKeyPair, sender?: Uint8Array | null, armor_options?: Partial<ArmorOptions>) {
+  constructor(keypair: BoxKeyPair, sender?: Uint8Array | null, armor_options?: Partial<ArmorOptions>) {
     const dearmor = new DearmorStream(armor_options);
     const decrypt = new DecryptStream(keypair, sender);
 
@@ -57,7 +57,7 @@ export class DearmorAndDecryptStream extends Pumpify {
   }
 }
 
-export async function signAndArmor(data: Uint8Array | string, keypair: tweetnacl.SignKeyPair) {
+export async function signAndArmor(data: Uint8Array | string, keypair: SignKeyPair) {
   const signed = sign(data, keypair);
   return armor(signed, { message_type: MessageType.SIGNED_MESSAGE });
 }
@@ -72,7 +72,7 @@ export async function verifyArmored(signed: string, public_key?: Uint8Array | nu
 export type DearmorAndVerifyResult = DearmorResult & VerifyResult;
 
 export class SignAndArmorStream extends Pumpify {
-  constructor(keypair: tweetnacl.SignKeyPair, armor_options?: Partial<ArmorOptions>) {
+  constructor(keypair: SignKeyPair, armor_options?: Partial<ArmorOptions>) {
     const sign = new SignStream(keypair);
     const armor = new ArmorStream(
       Object.assign(
@@ -108,7 +108,7 @@ export class DearmorAndVerifyStream extends Pumpify {
   }
 }
 
-export async function signDetachedAndArmor(data: Uint8Array | string, keypair: tweetnacl.SignKeyPair) {
+export async function signDetachedAndArmor(data: Uint8Array | string, keypair: SignKeyPair) {
   const signed = signDetached(data, keypair);
   return armor(signed, { message_type: MessageType.DETACHED_SIGNATURE });
 }
@@ -128,11 +128,11 @@ export interface DearmorAndVerifyDetachedResult extends VerifyDetachedResult {
   header_info: ArmorHeaderInfo;
 }
 
-export async function signcryptAndArmor(data: Uint8Array | string, keypair: tweetnacl.SignKeyPair | null, recipients_keys: Uint8Array[]) {
+export async function signcryptAndArmor(data: Uint8Array | string, keypair: SignKeyPair | null, recipients_keys: Uint8Array[]) {
   const encrypted = await signcrypt(data, keypair, recipients_keys);
   return armor(encrypted, { message_type: MessageType.ENCRYPTED_MESSAGE });
 }
-export async function dearmorAndDesigncrypt(signcrypted: string, keypair: tweetnacl.BoxKeyPair, sender?: Uint8Array | null): Promise<DearmorAndDesigncryptResult> {
+export async function dearmorAndDesigncrypt(signcrypted: string, keypair: BoxKeyPair, sender?: Uint8Array | null): Promise<DearmorAndDesigncryptResult> {
   const dearmored = dearmor(signcrypted);
   return Object.assign(await designcrypt(dearmored, keypair, sender), {
     remaining: dearmored.remaining,
@@ -143,7 +143,7 @@ export async function dearmorAndDesigncrypt(signcrypted: string, keypair: tweetn
 export type DearmorAndDesigncryptResult = DearmorResult & DesigncryptResult;
 
 export class SigncryptAndArmorStream extends Pumpify {
-  constructor(keypair: tweetnacl.SignKeyPair | null, recipients_keys: (Uint8Array | SymmetricKeyRecipient)[], armor_options?: Partial<ArmorOptions>) {
+  constructor(keypair: SignKeyPair | null, recipients_keys: (Uint8Array | SymmetricKeyRecipient)[], armor_options?: Partial<ArmorOptions>) {
     const encrypt = new SigncryptStream(keypair, recipients_keys);
     const armor = new ArmorStream(
       Object.assign(
@@ -161,7 +161,7 @@ export class DearmorAndDesigncryptStream extends Pumpify {
   readonly dearmor: DearmorStream;
   readonly decrypt: DesigncryptStream;
 
-  constructor(keys: tweetnacl.BoxKeyPair | SymmetricKeyRecipient, armor_options?: Partial<ArmorOptions>) {
+  constructor(keys: BoxKeyPair | SymmetricKeyRecipient, armor_options?: Partial<ArmorOptions>) {
     const dearmor = new DearmorStream(armor_options);
     const decrypt = new DesigncryptStream(keys);
 

@@ -1,4 +1,4 @@
-const { armor, dearmor, ArmorStream, DearmorStream, encodeBlock, decodeBlock, Options, efficientCharsSizes } = require("../dist/armor");
+const { armor, dearmor, ArmorStream, DearmorStream, encodeBlock, decodeBlock, efficientCharsSizes } = require("../dist/armor");
 
 const { INPUT_STRING } = require("./data/common");
 const { ENCRYPTED } = require("./data/encryption-tests");
