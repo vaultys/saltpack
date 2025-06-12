@@ -1,6 +1,6 @@
-import { createHash } from "crypto";
 import { box } from "tweetnacl";
 import { isBufferOrUint8Array } from "../util";
+import { sha512 } from "@noble/hashes/sha2";
 
 export default class EncryptedMessageRecipient {
   static readonly PAYLOAD_KEY_BOX_NONCE_PREFIX_V2 = Buffer.from("saltpack_recipsb");
@@ -108,12 +108,12 @@ export default class EncryptedMessageRecipient {
 
     // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
     // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
-    const mac_key = createHash("sha512").update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
+    const mac_key = sha512.create().update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
 
     // @ts-expect-error
     this.mac_key = mac_key;
 
-    return mac_key;
+    return Buffer.from(mac_key);
   }
 
   generateMacKeyForRecipient(header_hash: Uint8Array, ephemeral_public_key: Uint8Array, sender_public_key: Uint8Array, private_key: Uint8Array): Buffer {
@@ -140,11 +140,11 @@ export default class EncryptedMessageRecipient {
 
     // 14. Concatenate the last 32 bytes each box from steps 11 and 13. Take the SHA512 hash of that
     // concatenation. The recipient's MAC Key is the first 32 bytes of that hash.
-    const mac_key = createHash("sha512").update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
+    const mac_key = sha512.create().update(box_1.slice(-32)).update(box_2.slice(-32)).digest().slice(0, 32);
 
     // @ts-expect-error
     this.mac_key = mac_key;
 
-    return mac_key;
+    return Buffer.from(mac_key);
   }
 }

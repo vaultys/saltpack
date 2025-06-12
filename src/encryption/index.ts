@@ -3,8 +3,7 @@ import EncryptedMessageRecipient from "./recipient";
 import EncryptedMessagePayload from "./payload";
 import { chunkBuffer } from "../util";
 import { Readable, Transform, TransformCallback } from "stream";
-import { randomBytes } from "crypto";
-import { BoxKeyPair, box } from "tweetnacl";
+import { BoxKeyPair, box, randomBytes } from "tweetnacl";
 import { decodeMultiStream, Decoder } from "@msgpack/msgpack";
 
 const CHUNK_LENGTH = 1024 * 1024;
@@ -24,7 +23,7 @@ export async function encrypt(data: Uint8Array | string, keypair: BoxKeyPair | n
   const chunks = chunkBuffer(data, CHUNK_LENGTH);
 
   // 1. Generate a random 32-byte payload key.
-  const payload_key = debug_fix_key ?? randomBytes(32);
+  const payload_key = debug_fix_key ?? Buffer.from(randomBytes(32));
 
   // 2. Generate a random ephemeral keypair, using crypto_box_keypair.
   const ephemeral_keypair = debug_fix_keypair ?? box.keyPair();
@@ -67,7 +66,7 @@ export class EncryptStream extends Transform {
     super();
 
     // 1. Generate a random 32-byte payload key.
-    this.payload_key = debug_fix_key ?? randomBytes(32);
+    this.payload_key = debug_fix_key ?? Buffer.from(randomBytes(32));
 
     // 2. Generate a random ephemeral keypair, using crypto_box_keypair.
     this.ephemeral_keypair = debug_fix_keypair ?? box.keyPair();

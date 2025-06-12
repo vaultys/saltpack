@@ -1,8 +1,9 @@
 import EncryptedMessageHeader from "./header";
 import EncryptedMessageRecipient from "./recipient";
 import { secretbox } from "tweetnacl";
-import { createHash, createHmac } from "crypto";
 import { decode, encode } from "@msgpack/msgpack";
+import { hmac } from "@noble/hashes/hmac";
+import { sha512 } from "@noble/hashes/sha2";
 
 // [
 //     final flag,
@@ -56,7 +57,7 @@ export default class EncryptedMessagePayload {
         // 3. For each recipient, compute the crypto_auth (HMAC-SHA512, truncated to 32 bytes) of the hash
         // from #2, using that recipient's MAC key.
         // return substr(sodium_crypto_auth($authenticator_hash, $recipient->mac_key), 0, 32);
-        return createHmac("sha512", recipient.mac_key).update(authenticator_hash).digest().slice(0, 32);
+        return Buffer.from(hmac(sha512, recipient.mac_key, authenticator_hash).slice(0, 32));
       }),
       payload_secretbox,
     );
@@ -66,12 +67,15 @@ export default class EncryptedMessagePayload {
     // 1. Concatenate the header hash, the nonce for the payload secretbox, the final flag byte (0x00 or 0x01),
     // and the payload secretbox itself.
     // 2. Compute the crypto_hash (SHA512) of the bytes from #1.
-    return createHash("sha512")
-      .update(header_hash)
-      .update(payload_secretbox_nonce)
-      .update(final ? "\x01" : "\x00")
-      .update(payload_secretbox)
-      .digest();
+    return Buffer.from(
+      sha512
+        .create()
+        .update(header_hash)
+        .update(payload_secretbox_nonce)
+        .update(final ? "\x01" : "\x00")
+        .update(payload_secretbox)
+        .digest(),
+    );
   }
 
   encode() {
@@ -111,7 +115,7 @@ export default class EncryptedMessagePayload {
     // 3. For each recipient, compute the crypto_auth (HMAC-SHA512, truncated to 32 bytes) of the hash
     // from #2, using that recipient's MAC key.
     // const our_authenticator = substr(sodium_crypto_auth($authenticator_hash, $recipient->mac_key), 0, 32);
-    const our_authenticator = createHmac("sha512", recipient.mac_key).update(authenticator_hash).digest().slice(0, 32);
+    const our_authenticator = Buffer.from(hmac(sha512, recipient.mac_key, authenticator_hash).slice(0, 32));
 
     if (!authenticator || !our_authenticator.equals(authenticator)) {
       throw new Error("Invalid authenticator");

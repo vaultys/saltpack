@@ -3,7 +3,7 @@ import EncryptedMessageRecipient from "./recipient";
 import { BoxKeyPair, secretbox, box } from "tweetnacl";
 import { isBufferOrUint8Array } from "../util";
 import { encode } from "@msgpack/msgpack";
-import { createHash } from "crypto";
+import { sha512 } from "@noble/hashes/sha2";
 
 export default class EncryptedMessageHeader extends Header {
   static readonly SENDER_KEY_SECRETBOX_NONCE = Buffer.from("saltpack_sender_key_sbox");
@@ -86,7 +86,7 @@ export default class EncryptedMessageHeader extends Header {
 
     const encoded = encode(data);
 
-    const header_hash = createHash("sha512").update(encoded).digest();
+    const header_hash = Buffer.from(sha512.create().update(encoded).digest());
 
     return [header_hash, Buffer.from(encode(encoded))];
   }
